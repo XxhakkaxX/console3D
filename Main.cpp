@@ -20,6 +20,7 @@ int main()
     std::unique_ptr<GraphicsManager> graphics = std::make_unique<GraphicsManager>();
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Ray>> walls;
+    std::vector<std::unique_ptr<Ray>> glids;
     constexpr float PI = 3.141592654f;
 
     const int updateFps = 60;
@@ -39,6 +40,12 @@ int main()
     walls.emplace_back(std::make_unique<Ray>(Vector2(50, 50), Vector2(100, 300)));
     walls.emplace_back(std::make_unique<Ray>(Vector2(100, 300), Vector2(250, 200)));
     walls.emplace_back(std::make_unique<Ray>(Vector2(250, 200), Vector2(50, 50)));
+
+    for (int i = 0; i < 600; i += 50)
+    {
+        glids.emplace_back(std::make_unique<Ray>(Vector2(0, i), Vector2(500, i)));
+        glids.emplace_back(std::make_unique<Ray>(Vector2(i, 0), Vector2(i, 500)));
+    }
 
     while (true)
     {
@@ -92,6 +99,24 @@ int main()
                 beamIndex++;
                 float playerEyeLen = 1000;
                 auto beam = Ray(player->pos, Vector2(cos(angle) * playerEyeLen, sin(angle) * playerEyeLen));
+                
+                for (auto& glid : glids)
+                {
+                    Vector2 hitPos(0, 0);
+                    auto hit = beam.intersection(glid.get(), hitPos);
+                    if (!hit) continue;
+                    // 3Dビューに描画
+                    auto viewRoot = Vector2(0, ScreenHeight * 0.5f);
+                    auto wallDist = (hitPos - beam.begin()).len();
+                    auto wallPerpDist = wallDist * cos(angle - centerAngle);
+                    auto lineHeight = std::clamp(1400 / wallPerpDist, 0.0f, (float)ScreenHeight);
+                    auto lineBegin = viewRoot + Vector2(beamIndex, -lineHeight / 2);
+                    auto lineEnd = lineBegin + Vector2(0, lineHeight);
+                    float fogColor = 1 - (wallDist / 150);
+
+                    graphics->Printf(lineEnd, "■", DrawColor(fogColor, fogColor, fogColor), DrawColor(0, 0, 0));
+                }
+                
                 float neerLen = FLT_MAX;
                 for (auto& wall : walls) {
                     Vector2 hitPos(0, 0);
@@ -115,8 +140,6 @@ int main()
                     graphics->DrawLine(lineBegin, lineEnd, DrawColor(fogColor, fogColor, fogColor));
                 }
             }
-            
-            graphics->Printf(Vector2(3, 3), "TEST");
         }
 
         if (nowClock >= lastDrawClock + drawInterval)

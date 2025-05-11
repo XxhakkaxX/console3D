@@ -5,16 +5,19 @@ GraphicsManager::GraphicsManager() :display()
 {
 }
 
-void GraphicsManager::Printf(Vector2 pos, const char* dispChar, DrawColor textColor, TextPivot pivot, DrawColor backColor)
+void GraphicsManager::Printf(Vector2 pos, std::string  dispChar, DrawColor textColor, TextPivot pivot, DrawColor backColor)
 {
+    if (pos.x < 0 || pos.x > ScreenWidth - 1) return;
+    if (pos.y < 0 || pos.y > ScreenHeight - 1) return;
     display[static_cast<int>(pos.x)][static_cast<int>(pos.y)].textColor = textColor;
     display[static_cast<int>(pos.x)][static_cast<int>(pos.y)].backColor = backColor;
     Printf(pos, dispChar, pivot);
 }
 
-void GraphicsManager::Printf(Vector2 pos, const char* dispChar, TextPivot pivot)
+void GraphicsManager::Printf(Vector2 pos, std::string  dispChar, TextPivot pivot)
 {
     std::string str = dispChar;
+    
     for (int i = 0; i < str.length(); ++i)
     {
         int setPosX = static_cast<int>(pos.x) + i;
@@ -32,9 +35,55 @@ void GraphicsManager::Printf(Vector2 pos, const char* dispChar, TextPivot pivot)
     }
 }
 
+void GraphicsManager::Printf(Vector2 pos, std::string dispChar,
+    DrawColor textColor ,
+    DrawColor backColor )
+{
+    if (pos.x < 0 || pos.x > ScreenWidth - 1) return;
+    if (pos.y < 0 || pos.y > ScreenHeight - 1) return;
+    display[static_cast<int>(pos.x)][static_cast<int>(pos.y)].textColor = textColor;
+    display[static_cast<int>(pos.x)][static_cast<int>(pos.y)].backColor = backColor;
+    display[static_cast<int>(pos.x)][static_cast<int>(pos.y)].text = dispChar;
+}
+
+void GraphicsManager::DrawCircle(Vector2 pos, float radius, DrawColor textColor, DrawColor backColor, std::string  dispChar)
+{
+    for (int y = 0; y < static_cast<int>(radius * 2); ++y)
+    {
+        for (int x = 0; x < static_cast<int>(radius * 2); ++x)
+        {
+            int setPosX = static_cast<int>(pos.x) + x - static_cast<int>(radius);
+            int setPosY = static_cast<int>(pos.y) + y - static_cast<int>(radius);
+            if (pos.lengthSq(Vector2(setPosX, setPosY)) > static_cast<int>(radius * radius)) continue;
+            if (setPosX < 0 || setPosX > ScreenWidth - 1) continue;
+            if (setPosY < 0 || setPosY > ScreenHeight - 1) continue;
+            display[setPosX][setPosY].textColor = textColor;
+            display[setPosX][setPosY].backColor = backColor;
+            display[setPosX][setPosY].text = dispChar;
+        }
+    }
+}
+
+void GraphicsManager::DrawRect(Vector2 pos, Vector2 size, DrawColor textColor, DrawColor backColor, std::string  dispChar)
+{
+    for (int y = 0; y < size.y; ++y)
+    {
+        for (int x = 0; x < size.x; ++x)
+        {
+            int setPosX = static_cast<int>(pos.x) + x - static_cast<int>(size.x * 0.5f);
+            int setPosY = static_cast<int>(pos.y) + y - static_cast<int>(size.y * 0.5f);
+            if (setPosX < 0 || setPosX > ScreenWidth - 1) continue;
+            if (setPosY < 0 || setPosY > ScreenHeight - 1) continue;
+            display[setPosX][setPosY].textColor = textColor;
+            display[setPosX][setPosY].backColor = backColor;
+            display[setPosX][setPosY].text = dispChar;
+        }
+    }
+}
+
 void GraphicsManager::DrawLine(Vector2 start, Vector2 end,
     DrawColor textColor,
-    DrawColor backColor, const char* dispChar)
+    DrawColor backColor, std::string  dispChar)
 {
     int i = 0;
     // Œy—Ê‰»—]’n‚ ‚è
