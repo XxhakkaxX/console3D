@@ -23,10 +23,10 @@ int main()
     std::vector<std::unique_ptr<Ray>> glids;
     constexpr float PI = 3.141592654f;
 
-    const int updateFps = 60;
+    const int updateFps = 120;
     const int updateInterval = 1000 / updateFps;
 
-    const int drawFps = 10;
+    const int drawFps = 60;
     const int drawInterval = 1000 / drawFps;
 
     clock_t lastUpdateClock = clock();
@@ -55,33 +55,62 @@ int main()
         {
             lastUpdateClock = nowClock;
 
+            auto keyCheck = [&](char c)
+                {
+
+                        switch (_getch())
+                        {
+                        case 'w':
+                            if ('w' == c)return true;
+                            break;
+                        case 's':
+                            if ('s' == c)return true;
+                            break;
+                        case 'd':
+                            if ('d' == c)return true;
+                            break;
+                        case 'a':
+                            if ('a' == c)return true;
+                            break;
+                        case 'j':
+                            if ('j' == c)return true;
+                            break;
+                        case 'l':
+                            if ('l' == c)return true;
+                            break;
+                        }
+                    return false;
+                };
 
             if (_kbhit())
             {
-                switch (_getch())
+                if (keyCheck('w'))
                 {
-                case 'w':
                     player->pos.x += moveSpeed * cos(player->angle);
                     player->pos.y += moveSpeed * sin(player->angle);
-                    break;
-                case 's':
+                }
+                if (keyCheck('s'))
+                {
                     player->pos.x -= moveSpeed * cos(player->angle);
                     player->pos.y -= moveSpeed * sin(player->angle);
-                    break;
-                case 'd':
+                }
+                if (keyCheck('d'))
+                {
                     player->pos.x += moveSpeed * cos(player->angle + PI * 0.5f);
                     player->pos.y += moveSpeed * sin(player->angle + PI * 0.5f);
-                    break;
-                case 'a':
+                }
+                if (keyCheck('a'))
+                {
                     player->pos.x += moveSpeed * cos(player->angle - PI * 0.5f);
                     player->pos.y += moveSpeed * sin(player->angle - PI * 0.5f);
-                    break;
-                case 'j':
-                    player->angle -= PI / 30;
-                    break;
-                case 'l':
-                    player->angle += PI / 30;
-                    break;
+                }
+                if (keyCheck('j'))
+                {
+                    player->angle -= PI / 15;
+                }
+                if (keyCheck('l'))
+                {
+                    player->angle += PI / 15;
                 }
             }
 

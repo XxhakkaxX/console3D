@@ -1,5 +1,6 @@
 #include "GraphicsManager.h"
 #include <algorithm>
+#include <windows.h>
 
 GraphicsManager::GraphicsManager() :display() 
 {
@@ -128,7 +129,23 @@ void GraphicsManager::RenderPrepar()
 
 void GraphicsManager::Render()
 {
-    std::system("cls");
+    //std::system("cls");
+    HANDLE hCons = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD pos;
+    pos.X = 0;
+    pos.Y = 0;
+    SetConsoleCursorPosition(hCons, pos);
+
+    CONSOLE_CURSOR_INFO cci;
+
+    // CONSOLE_CURSOR_INFO構造体の現在の状態を取得する
+    GetConsoleCursorInfo(hCons, &cci);
+
+    // メンバ変数であるbVisibleがカーソルの表示・非表示を制御する変数なので、これをFALSEにする事でカーソルを非表示にできる
+    cci.bVisible = FALSE;
+
+    // 変更した構造体情報をコンソールWindowにセットする
+    SetConsoleCursorInfo(hCons, &cci);
     for (int y = 0; y < ScreenHeight; ++y)
     {
         for (int x = 0; x < ScreenWidth; ++x)
