@@ -6,6 +6,9 @@
 #include "Vector2.h"
 #include "Ray.h"
 #include "GraphicsManager.h"
+#include "SceneManager.h"
+#include "SceneTest.h"
+#include "SceneTest2.h"
 
 class Player {
 public:
@@ -17,16 +20,17 @@ public:
 
 int main()
 {
+    std::unique_ptr<SceneManager> sceneManager = std::make_unique<SceneManager>();
     std::unique_ptr<GraphicsManager> graphics = std::make_unique<GraphicsManager>();
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Ray>> walls;
     std::vector<std::unique_ptr<Ray>> glids;
     constexpr float PI = 3.141592654f;
 
-    const int updateFps = 120;
+    const int updateFps = 60;
     const int updateInterval = 1000 / updateFps;
 
-    const int drawFps = 60;
+    const int drawFps = 30;
     const int drawInterval = 1000 / drawFps;
 
     clock_t lastUpdateClock = clock();
@@ -47,13 +51,17 @@ int main()
         glids.emplace_back(std::make_unique<Ray>(Vector2(i, 0), Vector2(i, 500)));
     }
 
+    sceneManager->ChengeScene(std::make_unique<SceneTest>());
+
     while (true)
     {
         clock_t nowClock = clock();
 
+
         if (nowClock >= lastUpdateClock + updateInterval)
         {
             lastUpdateClock = nowClock;
+            sceneManager->Update();
 
             auto keyCheck = [&](char c)
                 {
@@ -88,11 +96,13 @@ int main()
                 {
                     player->pos.x += moveSpeed * cos(player->angle);
                     player->pos.y += moveSpeed * sin(player->angle);
+                    sceneManager->ChengeScene(std::make_unique<SceneTest>());
                 }
                 if (keyCheck('s'))
                 {
                     player->pos.x -= moveSpeed * cos(player->angle);
                     player->pos.y -= moveSpeed * sin(player->angle);
+                    sceneManager->ChengeScene(std::make_unique<SceneTest2>());
                 }
                 if (keyCheck('d'))
                 {

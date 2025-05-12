@@ -2,8 +2,8 @@
 #include <string>
 #include "Vector2.h"
 
-constexpr int ScreenWidth = 150;
-constexpr int ScreenHeight = 80;
+constexpr int ScreenWidth = 75;
+constexpr int ScreenHeight = 40;
 
 struct DrawColor
 {

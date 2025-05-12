@@ -129,7 +129,6 @@ void GraphicsManager::RenderPrepar()
 
 void GraphicsManager::Render()
 {
-    //std::system("cls");
     HANDLE hCons = GetStdHandle(STD_OUTPUT_HANDLE);
     COORD pos;
     pos.X = 0;
