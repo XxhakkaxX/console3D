@@ -31,6 +31,16 @@ class GraphicsManager
 {
 public:
     GraphicsManager();
+    ~GraphicsManager();
+
+    static GraphicsManager& instance()
+    {
+        if (!m_instance)
+        {
+            m_instance = new GraphicsManager;
+        }
+        return *m_instance;
+    }
 
     // Žw’è‚µ‚½•¶Žš•`‰æ
     void Printf(Vector2 pos, std::string  dispChar,
@@ -67,4 +77,7 @@ public:
 
 public:
     DisplayDot display[ScreenWidth][ScreenHeight] = {};
+
+private:
+    static GraphicsManager* m_instance;
 };

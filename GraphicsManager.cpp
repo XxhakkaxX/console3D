@@ -1,38 +1,122 @@
-#include "GraphicsManager.h"
+ï»¿#include "GraphicsManager.h"
 #include <algorithm>
 #include <windows.h>
 
+GraphicsManager* GraphicsManager::m_instance = nullptr;
 GraphicsManager::GraphicsManager() :display() 
 {
+    HANDLE hCons = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    CONSOLE_CURSOR_INFO cci;
+
+    // CONSOLE_CURSOR_INFOæ§‹é€ ä½“ã®ç¾åœ¨ã®çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+    GetConsoleCursorInfo(hCons, &cci);
+
+    // ãƒ¡ãƒ³ãƒå¤‰æ•°ã§ã‚ã‚‹bVisibleãŒã‚«ãƒ¼ã‚½ãƒ«ã®è¡¨ç¤ºãƒ»éè¡¨ç¤ºã‚’åˆ¶å¾¡ã™ã‚‹å¤‰æ•°ãªã®ã§ã€ã“ã‚Œã‚’FALSEã«ã™ã‚‹äº‹ã§ã‚«ãƒ¼ã‚½ãƒ«ã‚’éè¡¨ç¤ºã«ã§ãã‚‹
+    cci.bVisible = FALSE;
+
+    // å¤‰æ›´ã—ãŸæ§‹é€ ä½“æƒ…å ±ã‚’ã‚³ãƒ³ã‚½ãƒ¼ãƒ«Windowã«ã‚»ãƒƒãƒˆã™ã‚‹
+    SetConsoleCursorInfo(hCons, &cci);
+}
+
+GraphicsManager::~GraphicsManager()
+{
+    delete m_instance;
+    m_instance = nullptr;
+}
+
+// UTF-8ã®1æ–‡å­—ã®ãƒã‚¤ãƒˆæ•°ã‚’è¿”ã™é–¢æ•°
+size_t utf8_char_length(char c) {
+    
+    if (c <= -117 || c >= -127 && c < 0) return 2; // 2ãƒã‚¤ãƒˆ
+
+    return 1; // ãã®ä»–1ãƒã‚¤ãƒˆ
 }
 
 void GraphicsManager::Printf(Vector2 pos, std::string  dispChar, DrawColor textColor, TextPivot pivot, DrawColor backColor)
 {
     if (pos.x < 0 || pos.x > ScreenWidth - 1) return;
     if (pos.y < 0 || pos.y > ScreenHeight - 1) return;
-    display[static_cast<int>(pos.x)][static_cast<int>(pos.y)].textColor = textColor;
-    display[static_cast<int>(pos.x)][static_cast<int>(pos.y)].backColor = backColor;
-    Printf(pos, dispChar, pivot);
+
+    int numCount = 0;
+    for (size_t i = 0; i < dispChar.size();) {
+        size_t len = utf8_char_length(dispChar[i]);
+        i += len;
+        ++numCount;
+    }
+
+    int numIndex = 0;
+    for (size_t i = 0; i < dispChar.size();) {
+        size_t len = utf8_char_length(dispChar[i]);
+        int setPosX = static_cast<int>(pos.x) + numIndex;
+        if (pivot == TextPivot::Center)
+        {
+            setPosX -= static_cast<int>(numCount * 0.5f);
+        }
+        if (pivot == TextPivot::Right)
+        {
+            setPosX -= static_cast<int>(numCount);
+        }
+        if (setPosX < 0 || setPosX > ScreenWidth - 1)
+        {
+            i += len;
+            ++numIndex;
+            continue;
+        }
+        if (pos.y < 0 || pos.y > ScreenHeight - 1)
+        {
+            i += len;
+            ++numIndex;
+            continue;
+        }
+
+        display[setPosX][static_cast<int>(pos.y)].textColor = textColor;
+        display[setPosX][static_cast<int>(pos.y)].backColor = backColor;
+        display[setPosX][static_cast<int>(pos.y)].text = dispChar.substr(i, len);
+        i += len;
+        ++numIndex;
+    }
 }
 
 void GraphicsManager::Printf(Vector2 pos, std::string  dispChar, TextPivot pivot)
 {
     std::string str = dispChar;
     
-    for (int i = 0; i < str.length(); ++i)
-    {
-        int setPosX = static_cast<int>(pos.x) + i;
+    int numCount = 0;
+    for (size_t i = 0; i < dispChar.size();) {
+        size_t len = utf8_char_length(dispChar[i]);
+        i += len;
+        ++numCount;
+    }
+
+    int numIndex = 0;
+    for (size_t i = 0; i < dispChar.size();) {
+        size_t len = utf8_char_length(dispChar[i]);
+        int setPosX = static_cast<int>(pos.x) + numIndex;
         if (pivot == TextPivot::Center)
         {
-            setPosX -= static_cast<int>(str.length() * 0.5f);
+            setPosX -= static_cast<int>(numCount * 0.5f);
         }
         if (pivot == TextPivot::Right)
         {
-            setPosX -= static_cast<int>(str.length());
+            setPosX -= static_cast<int>(numCount);
         }
-        if (setPosX < 0 || setPosX > ScreenWidth - 1) continue;
-        if (pos.y < 0 || pos.y > ScreenHeight - 1) continue;
-        display[setPosX][static_cast<int>(pos.y)].text = str[i];
+        if (setPosX < 0 || setPosX > ScreenWidth - 1) 
+        {
+            i += len;
+            ++numIndex;
+            continue;
+        }
+        if (pos.y < 0 || pos.y > ScreenHeight - 1) 
+        {
+            i += len;
+            ++numIndex;
+            continue;
+        }
+
+        display[setPosX][static_cast<int>(pos.y)].text = dispChar.substr(i, len);
+        i += len;
+        ++numIndex;
     }
 }
 
@@ -87,13 +171,13 @@ void GraphicsManager::DrawLine(Vector2 start, Vector2 end,
     DrawColor backColor, std::string  dispChar)
 {
     int i = 0;
-    // Œy—Ê‰»—]’n‚ ‚è
+    // è»½é‡åŒ–ä½™åœ°ã‚ã‚Š
     while (true)
     {
         auto vec = end - start;
         auto dispPos = start + vec.normalize() * i;
 
-        // •`‰æ”ÍˆÍ“à‚©ƒ`ƒFƒbƒN
+        // æç”»ç¯„å›²å†…ã‹ãƒã‚§ãƒƒã‚¯
         auto displayCheck = [&]()
             {
                 return (abs(dispPos.lengthSq(end)) < 0.25f || abs(dispPos.lengthSq(end)) > abs(start.lengthSq(end)));
@@ -122,7 +206,7 @@ void GraphicsManager::RenderPrepar()
         {
             display[x][y].backColor = { 0,0,0 };
             display[x][y].textColor = { 1,1,1 };
-            display[x][y].text = "@";
+            display[x][y].text = "ã€€";
         }
     }
 }
@@ -134,17 +218,6 @@ void GraphicsManager::Render()
     pos.X = 0;
     pos.Y = 0;
     SetConsoleCursorPosition(hCons, pos);
-
-    CONSOLE_CURSOR_INFO cci;
-
-    // CONSOLE_CURSOR_INFO\‘¢‘Ì‚ÌŒ»İ‚Ìó‘Ô‚ğæ“¾‚·‚é
-    GetConsoleCursorInfo(hCons, &cci);
-
-    // ƒƒ“ƒo•Ï”‚Å‚ ‚ébVisible‚ªƒJ[ƒ\ƒ‹‚Ì•\¦E”ñ•\¦‚ğ§Œä‚·‚é•Ï”‚È‚Ì‚ÅA‚±‚ê‚ğFALSE‚É‚·‚é–‚ÅƒJ[ƒ\ƒ‹‚ğ”ñ•\¦‚É‚Å‚«‚é
-    cci.bVisible = FALSE;
-
-    // •ÏX‚µ‚½\‘¢‘Ìî•ñ‚ğƒRƒ“ƒ\[ƒ‹Window‚ÉƒZƒbƒg‚·‚é
-    SetConsoleCursorInfo(hCons, &cci);
     for (int y = 0; y < ScreenHeight; ++y)
     {
         for (int x = 0; x < ScreenWidth; ++x)
